@@ -1,0 +1,171 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
+    }
+    dependencies {
+        // Add this line
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.0.1"
+        classpath 'gradle.plugin.edu.sc.seis.gradle:launch4j:1.6.2'
+    }
+}
+
+
+group 'javaGradleStartPack'
+version '1.0.0'
+
+// Apply the java plugin to add support for Java
+apply plugin: 'java'
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'maven-publish'
+apply plugin: 'idea'
+apply plugin: 'edu.sc.seis.launch4j'
+sourceCompatibility = 1.8
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.1' //version required
+}
+
+repositories {
+    jcenter()
+    maven {
+        url 'https://artifactory.doar.systems/libs-release-local'
+        credentials {
+            username = "vasilevich"
+            password = "APkgGZjFzEM6Kp1yj1Be3fyrKW"
+        }
+    }
+}
+/**
+Dev dependencies
+add all the dependencies you wish to use within the IDE.
+this is required or you won't be able to run/debug the project inside the IDE.
+*/
+dependencies {
+ 
+}
+/**
+Where to look for source code, and resources(assets,images,etc)
+*/
+sourceSets {
+    main {
+        java {
+            srcDir new File(rootProject.projectDir, "src/main/java").getAbsolutePath()
+        }
+        resources {
+            srcDir new File(rootProject.projectDir, "src/main/resources").getAbsolutePath()
+        }
+    }
+}
+
+/**
+Every sub project is an output executable which is derived from the main source code.
+you should decide which project has specific dependency on a need basis.
+*/
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'edu.sc.seis.launch4j'
+    sourceCompatibility = 1.8
+    repositories {
+        jcenter()
+        maven {
+            url 'https://artifactory.doar.systems:443/libs-release-local'
+            credentials {
+                username = "vasilevich"
+                password = "APkgGZjFzEM6Kp1yj1Be3fyrKW"
+            }
+        }
+    }
+	/**
+	Global dependencies
+	These depdendencies will be packed in with ALL the sub-projects.
+	put here depdendencies that you think should be available within all the executables regardless.
+	this will affect final executable size.
+	*/
+    dependencies {
+  
+    }
+    sourceSets {
+        main {
+            java {
+                srcDir new File(rootProject.projectDir, "src/main/java").getAbsolutePath()
+            }
+            resources {
+                srcDir new File(rootProject.projectDir, "src/main/resources").getAbsolutePath()
+            }
+        }
+    }
+	/**
+		Build jar artifacts for all the sub projects
+	*/
+    task assembleRelease(type: Jar) {
+        classifier = 'release'
+        baseName = project.name
+        from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+        with jar
+    }
+    artifacts {
+        archives assembleRelease
+    }
+	/**
+		pack the resulting jar inside windows .EXE executable and give it an icon.
+		rules:
+		the name of the resulting file is defined within settings.gradle file.
+		in this example lets say project name is: Example1
+		the exe name should be:  
+		Example1.exe
+		the exe icon path should be:
+		src/main/resources/images/Example1.ico
+		the exe output path should be:
+		out/artifacts/Example1_jar/Example1.exe
+		
+		for every sub-project.
+	*/
+	
+    launch4j {
+        outfile = project.name + '.exe'
+        outputDir = new File(rootProject.projectDir, "out/artifacts/" + project.name + "_jar").getAbsolutePath()
+        copyConfigurable = project.tasks.assembleRelease.outputs.files
+        jar = "lib/${project.tasks.assembleRelease.archiveName}"
+        icon = new File(rootProject.projectDir, "src/main/resources/images/" + project.name + ".ico").getAbsolutePath()
+    }
+
+}
+
+
+/**
+copy from line 140-152 to create a new "sub project" alongside with creating new two lines in settings.gradle
+according to the rules mentioned on lines 22-24(inside settings.gradle)
+*/
+project(':Example1') {
+	/**
+	dependency per output executable should be defined here 
+	this will affect final executable size.
+	*/
+    dependencies {
+       
+    }
+	/**
+	here path to main([program entry) is defined in this example:
+	gui.Example1
+	is a file located at
+	src/main/java/gui/Example1.java
+	with a class Example1 and a working main method.
+	*/
+    assembleRelease.doFirst {
+        manifest {
+            attributes 'Implementation-Title': project.name,
+                    'Implementation-Version': project.version,
+                    'Main-Class': 'gui.Example1'
+        }
+    }
+}
+
+
+
+
+
+
+

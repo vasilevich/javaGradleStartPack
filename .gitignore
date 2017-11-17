@@ -1,0 +1,11 @@
+.idea
+.gradle
+build
+out
+# Ignore Gradle GUI config
+gradle-app.setting
+!gradle-wrapper.jar
+# Cache of project
+.gradletasknamecache
+src/test/
+
