@@ -64,13 +64,7 @@ subprojects {
     sourceCompatibility = 1.8
     repositories {
         jcenter()
-        maven {
-            url 'https://artifactory.doar.systems:443/libs-release-local'
-            credentials {
-                username = "vasilevich"
-                password = "APkgGZjFzEM6Kp1yj1Be3fyrKW"
-            }
-        }
+     
     }
 	/**
 	Global dependencies
