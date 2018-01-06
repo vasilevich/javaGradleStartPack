@@ -30,13 +30,7 @@ task wrapper(type: Wrapper) {
 
 repositories {
     jcenter()
-    maven {
-        url 'https://artifactory.doar.systems/libs-release-local'
-        credentials {
-            username = "vasilevich"
-            password = "APkgGZjFzEM6Kp1yj1Be3fyrKW"
-        }
-    }
+ 
 }
 /**
 Dev dependencies
